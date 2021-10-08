@@ -23,6 +23,6 @@ public class Scheduler {
     }
 
     private void storeToDatabase(MedicineDto dto) {
-
+        // TODO: convert DTO to Entity and store to database
     }
 }
