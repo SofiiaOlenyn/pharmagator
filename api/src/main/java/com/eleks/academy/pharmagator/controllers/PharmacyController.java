@@ -15,7 +15,6 @@ import java.util.Optional;
 public class PharmacyController {
     private final PharmacyRepository pharmacyRepository;
 
-
     @GetMapping
     public ResponseEntity<List<Pharmacy>> getAll() {
         return ResponseEntity.ok(pharmacyRepository.findAll());
