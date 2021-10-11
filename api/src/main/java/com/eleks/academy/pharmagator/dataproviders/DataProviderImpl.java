@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 public class DataProviderImpl implements DataProvider {
     @Override
     public Stream<MedicineDto> loadData() {
-        return IntStream.rangeClosed(1, 100)
+        return IntStream.rangeClosed(93, 100)
                 .mapToObj(this::buildDto);
     }
 
