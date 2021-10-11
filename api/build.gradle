@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+	implementation 'javax.el:javax.el-api:3.0.0'
+	implementation 'org.hibernate:hibernate-validator:7.0.1.Final'
 	implementation 'org.modelmapper:modelmapper:2.4.4'
 	implementation "org.mapstruct:mapstruct:1.4.2.Final"
 	annotationProcessor "org.mapstruct:mapstruct-processor:1.4.2.Final"

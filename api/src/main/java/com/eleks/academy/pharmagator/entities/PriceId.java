@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode
 public class PriceId implements Serializable {
     private long pharmacyId;
     private long medicineId;

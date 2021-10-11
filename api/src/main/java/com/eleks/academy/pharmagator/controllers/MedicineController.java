@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,31 +15,34 @@ public class MedicineController {
     private final MedicineRepository medicineRepository;
 
     @GetMapping
-    public ResponseEntity<List<Medicine>> getAll() {
-        return ResponseEntity.ok(medicineRepository.findAll());
+    public List<Medicine> getAll() {
+        return medicineRepository.findAll();
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Optional<Medicine>> getById(@PathVariable("id") Long id) {
-        return ResponseEntity.ok(medicineRepository.findById(id));
+    public ResponseEntity<Medicine> getById(@PathVariable("id") Long id) {
+        return this.medicineRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/addMedicine")
+    @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Medicine> create(@RequestBody Medicine medicine) {
         return ResponseEntity.ok(medicineRepository.save(medicine));
     }
 
-    @PostMapping("/update/{id}")
+    @RequestMapping(method = RequestMethod.PUT, value = "/{id}")
     public ResponseEntity<Medicine> update(@PathVariable("id") long id, @RequestBody Medicine medicine) {
-        medicine.setId(id);
-        return ResponseEntity.ok(medicineRepository.save(medicine));
-
+        return this.medicineRepository.findById(id)
+                .map(s -> medicineRepository.save(medicine))
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteById(@PathVariable("id") Long id) {
+    public ResponseEntity<?> deleteById(@PathVariable("id") Long id) {
         medicineRepository.deleteById(id);
-        return ResponseEntity.ok(id + " is deleted");
+        return ResponseEntity.noContent().build();
     }
 
 }

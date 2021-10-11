@@ -1,51 +1,63 @@
 package com.eleks.academy.pharmagator.controllers;
 
+import com.eleks.academy.pharmagator.dataproviders.request_entities.PriceRequest;
 import com.eleks.academy.pharmagator.entities.Price;
 import com.eleks.academy.pharmagator.entities.PriceId;
+import com.eleks.academy.pharmagator.repositories.MedicineRepository;
+import com.eleks.academy.pharmagator.repositories.PharmacyRepository;
 import com.eleks.academy.pharmagator.repositories.PriceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/prices")
 public class PriceController {
     private final PriceRepository priceRepository;
+    private final MedicineRepository medicineRepository;
+    private final PharmacyRepository pharmacyRepository;
 
     @GetMapping
-    public ResponseEntity<List<Price>> getAll() {
-        return ResponseEntity.ok(priceRepository.findAll());
+    public List<Price> getAll() {
+        return priceRepository.findAll();
     }
 
     @GetMapping(value = "/{pharmacyId}/{medicineId}")
-    public ResponseEntity<Optional<Price>> getById(@PathVariable("pharmacyId") long pharmacyId,
-                                                   @PathVariable("medicineId") long medicineId) {
-        return ResponseEntity.ok(priceRepository.findById(new PriceId(pharmacyId, medicineId)));
+    public ResponseEntity<Price> getById(@PathVariable("pharmacyId") long pharmacyId,
+                                         @PathVariable("medicineId") long medicineId) {
+        return this.priceRepository.findById(new PriceId(pharmacyId, medicineId))
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/addPrice")
-    public ResponseEntity<Price> create(@RequestBody Price price) {
-        return ResponseEntity.ok(priceRepository.save(price));
+    @RequestMapping(method = RequestMethod.POST)
+    public ResponseEntity<Price> create(@Valid @RequestBody PriceRequest priceRequest) {
+
+        if (this.pharmacyRepository.findById(priceRequest.getPharmacyId()).isEmpty() ||
+                this.medicineRepository.findById(priceRequest.getMedicineId()).isEmpty())
+            return ResponseEntity.unprocessableEntity().build();
+
+        return ResponseEntity.ok(priceRepository.save(priceRequest.toPrice()));
     }
 
-    @PostMapping("/update/{pharmacyId}/{medicineId}")
+    @RequestMapping(method = RequestMethod.PUT, value = "/{pharmacyId}/{medicineId}")
     public ResponseEntity<Price> update(@PathVariable("pharmacyId") long pharmacyId,
                                         @PathVariable("medicineId") long medicineId,
                                         @RequestBody Price price) {
-        price.setMedicineId(medicineId);
-        price.setPharmacyId(pharmacyId);
-        return ResponseEntity.ok(priceRepository.save(price));
-
+        return this.priceRepository.findById(new PriceId(pharmacyId, medicineId))
+                .map(s -> priceRepository.save(price))
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @RequestMapping(value = "/{pharmacyId}/{medicineId}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteById(@PathVariable("pharmacyId") long pharmacyId,
-                                     @PathVariable("medicineId") long medicineId) {
+    public ResponseEntity<?> deleteById(@PathVariable("pharmacyId") long pharmacyId,
+                                        @PathVariable("medicineId") long medicineId) {
         priceRepository.deleteById(new PriceId(pharmacyId, medicineId));
-        return ResponseEntity.ok(new PriceId(pharmacyId, medicineId) + " is deleted");
+        return ResponseEntity.noContent().build();
     }
 }
