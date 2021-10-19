@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ANCCategoryDto {
 
-	private Integer total;
+    private Integer total;
 
-	private List<ANCSubcategoryDto> categories;
+    private List<ANCSubcategoryDto> categories;
 }
