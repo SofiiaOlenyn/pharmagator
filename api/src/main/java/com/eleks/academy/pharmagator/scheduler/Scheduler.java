@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
 public class Scheduler {
 
