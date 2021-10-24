@@ -7,6 +7,7 @@ import com.eleks.academy.pharmagator.entities.Price;
 import com.eleks.academy.pharmagator.repositories.MedicineRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,6 +25,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
 public class Scheduler {
 
