@@ -15,4 +15,9 @@ public class PharmagatorApplication {
         SpringApplication.run(PharmagatorApplication.class, args);
     }
 
+    @Bean
+    public ProjectionFactory projectionFactory() {
+        return new SpelAwareProxyProjectionFactory();
+    }
+
 }
