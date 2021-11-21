@@ -24,7 +24,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -33,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class PriceControllerTest {
+class PriceControllerTest {
 
     private MockMvc mockMvc;
 
@@ -46,7 +45,8 @@ public class PriceControllerTest {
     @Mock
     private final ModelMapper modelMapper = new ModelMapper();
 
-    private final String CONTENT = "{\"price\": 11 , \"externalId\": \"11\" }";
+    private final String CONTENT = """ 
+            { "price": 11 , "externalId": "11" }""";
 
     private static Price price1;
     private static Price price2;
@@ -55,30 +55,30 @@ public class PriceControllerTest {
 
     private static final Long MEDICINE_ID = 1L;
     private static final Long PHARMACY_ID = 1L;
+    private static final String EXTERNAL_ID = "11";
+    private static final double PRICE = 11;
 
     private final String URI = "/prices";
     private final String URI_PRICE = "/pharmacyId/" + PHARMACY_ID + "/medicineId/" + MEDICINE_ID;
     private final String URI_NON_EXISTENT_PRICE = "/pharmacyId/" + 23L + "/medicineId/" + 45L;
 
-
     @BeforeAll
     static void setUpComponents() {
-
         price1 = new Price();
-        price1.setPrice(BigDecimal.valueOf(11));
+        price1.setPrice(BigDecimal.valueOf(PRICE));
         price1.setPharmacyId(PHARMACY_ID);
         price1.setMedicineId(MEDICINE_ID);
-        price1.setExternalId("11");
+        price1.setExternalId(EXTERNAL_ID);
 
         price2 = new Price();
-        price2.setPrice(BigDecimal.valueOf(11));
+        price2.setPrice(BigDecimal.valueOf(PRICE));
         price2.setPharmacyId(2L);
         price2.setMedicineId(MEDICINE_ID);
-        price2.setExternalId("11");
+        price2.setExternalId(EXTERNAL_ID);
 
         priceDto1 = new PriceDto();
         priceDto1.setPrice(BigDecimal.valueOf(11));
-        priceDto1.setExternalId("11");
+        priceDto1.setExternalId(EXTERNAL_ID);
 
         priceList = new ArrayList<>();
         priceList.add(price1);
@@ -87,7 +87,6 @@ public class PriceControllerTest {
 
     @BeforeEach
     public void init() {
-
         mockMvc = MockMvcBuilders
                 .standaloneSetup(priceController)
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
@@ -96,10 +95,9 @@ public class PriceControllerTest {
 
     @Test
     void getAllPrices_isOk() throws Exception {
-
         when(priceService.findAll()).thenReturn(priceList);
-        when(modelMapper.map(eq(price1), eq(PriceDto.class))).thenReturn(priceDto1);
-        when(modelMapper.map(eq(price2), eq(PriceDto.class))).thenReturn(priceDto1);
+        when(modelMapper.map(price1, PriceDto.class)).thenReturn(priceDto1);
+        when(modelMapper.map(price2, PriceDto.class)).thenReturn(priceDto1);
 
         mockMvc.perform(get(URI))
                 .andExpect(status().isOk())
@@ -110,40 +108,37 @@ public class PriceControllerTest {
 
     @Test
     void getById_isOk() throws Exception {
-
-        when(modelMapper.map(eq(price1), eq(PriceDto.class))).thenReturn(priceDto1);
+        when(modelMapper.map(price1, PriceDto.class)).thenReturn(priceDto1);
         when(priceService.findById(PHARMACY_ID, MEDICINE_ID)).thenReturn(Optional.of(price1));
 
         mockMvc.perform(get(URI + URI_PRICE))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$.price").value(priceDto1.getPrice()));
 
-        verify(priceService).findById(eq(PHARMACY_ID), eq(MEDICINE_ID));
+        verify(priceService).findById(PHARMACY_ID, MEDICINE_ID);
     }
 
     @Test
     void getById_noExistsId_isNotFound() throws Exception {
-
         mockMvc.perform(get(URI + URI_NON_EXISTENT_PRICE)).andExpect(status().isNotFound());
     }
 
     @Test
     void updatePharmacyById_isOk() throws Exception {
-
-        when(priceService.update(eq(PHARMACY_ID), eq(MEDICINE_ID), eq(priceDto1))).thenReturn(Optional.of(price1));
-        when(modelMapper.map(eq(price1), eq(PriceDto.class))).thenReturn(priceDto1);
+        when(priceService.update(PHARMACY_ID, MEDICINE_ID, priceDto1)).thenReturn(Optional.of(price1));
+        when(modelMapper.map(price1, PriceDto.class)).thenReturn(priceDto1);
 
         mockMvc.perform(put(URI + URI_PRICE)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(CONTENT)).andExpect(status().isOk())
+                        .content(CONTENT))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.price").value(priceDto1.getPrice()));
 
-        verify(priceService).update(eq(PHARMACY_ID), eq(MEDICINE_ID), eq(priceDto1));
+        verify(priceService).update(PHARMACY_ID, MEDICINE_ID, priceDto1);
     }
 
     @Test
     void updatePharmacyById_noExistsId_NotFound() throws Exception {
-
         mockMvc.perform(put(URI + URI_NON_EXISTENT_PRICE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(CONTENT))
@@ -152,7 +147,6 @@ public class PriceControllerTest {
 
     @Test
     void delete_isOk() throws Exception {
-
         mockMvc.perform(delete(URI + URI_PRICE)).andExpect(status().isNoContent());
         verify(priceService).deleteById(PHARMACY_ID, MEDICINE_ID);
     }
